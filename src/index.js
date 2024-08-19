@@ -1,6 +1,7 @@
 import app from './app.js'
 import dotenv from 'dotenv'
 import {sequelize} from './config/db.js'
+import './models/associations.js'
 
 dotenv.config()
 
