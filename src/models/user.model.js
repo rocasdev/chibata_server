@@ -1,74 +1,126 @@
-//Imports
-import { DataTypes } from "sequelize"
-import { sequelize } from "../config/db.js"
-import { Role } from "./role.model.js"
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db.js';
+import { Role } from './role.model.js';
 
-//User Model Declaration using sequelize
-export const User = sequelize.define("User",
-  {
-    user_id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING(255), allowNull: false },
-    surname: { type: DataTypes.STRING(255), allowNull: false },
-    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
-    doc_type: { type: DataTypes.ENUM("CC", "CE", "PA"), allowNull: false },
-    doc_num: { type: DataTypes.BIGINT, allowNull: false, unique: true },
-    phone_number: { type: DataTypes.BIGINT, allowNull: false, unique: true },
-    pass: { type: DataTypes.TEXT, allowNull: false },
-    role_id: { type: DataTypes.INTEGER, allowNull: false },
-    profile_photo: { type: DataTypes.TEXT },
-    state: { type: DataTypes.BOOLEAN, defaultValue: false },
-  },
-  {
-    tableName: "users",
-    timestamps: true,
-  }
-)
+// Definición de la clase User que extiende de Model
+class User extends Model {
+	// Método para crear un nuevo usuario
+	static async createUser(user) {
+		try {
+			return await this.create(user);
+		} catch (error) {
+			console.error(`Unable to create user: ${error}`);
+			throw error;
+		}
+	}
 
-//User model methods
-User.createUser = async function (user) {
-  try {
-    return await this.create(user);
-  } catch (error) {
-    return console.error(`Unable to create user: ${error}`);
-  }
+	// Método para obtener todos los usuarios
+	static async getUsers() {
+		try {
+			return await this.findAll({
+				include: [{
+					model: Role,
+					attributes: ['role_id', 'role_name'],
+				}],
+			});
+		} catch (error) {
+			console.error(`Unable to find all users: ${error}`);
+			throw error;
+		}
+	}
+
+	// Método para obtener un usuario por su ID
+	static async getUserById(id) {
+		try {
+			return await this.findByPk(id);
+		} catch (error) {
+			console.error(`Unable to find user by id: ${error}`);
+			throw error;
+		}
+	}
+
+	// Método para actualizar un usuario
+	static async updateUser(id, updated_user) {
+		try {
+			const user = await this.findByPk(id);
+			return user.update(updated_user);
+		} catch (error) {
+			console.error(`Unable to update the user: ${error}`);
+			throw error;
+		}
+	}
+
+	// Método para alternar el estado del usuario
+	static async toggleUserState(id) {
+		try {
+			const user = await this.findByPk(id);
+			const newState = !user.state;
+			await user.update({ state: newState });
+			return user;
+		} catch (error) {
+			console.error(`Unable to toggle user state: ${error}`);
+			throw error;
+		}
+	}
 }
 
-User.getUsers = async function () {
-  try {
-    return await this.findAll({
-      include: [{
-        model: Role,
-        attributes: ['role_id', 'role_name']
-      }]
-    });
-  } catch (error) {
-    console.error(`Unable to find all users: ${error}`);
-    throw error;
-  }
-}
+// Definición del modelo User en Sequelize
+User.init({
+	user_id: {
+		type: DataTypes.BIGINT,
+		primaryKey: true,
+		autoIncrement: true
+	},
+	name: {
+		type: DataTypes.STRING(255),
+		allowNull: false
+	},
+	surname: {
+		type: DataTypes.STRING(255),
+		allowNull: false
+	},
+	email: {
+		type: DataTypes.STRING(255),
+		allowNull: false,
+		unique: true
+	},
+	doc_type: {
+		type: DataTypes.ENUM("CC", "CE", "PA"),
+		allowNull: false
+	},
+	doc_num: {
+		type: DataTypes.BIGINT,
+		allowNull: false,
+		unique: true
+	},
+	phone_number: {
+		type: DataTypes.BIGINT,
+		allowNull: false,
+		unique: true
+	},
+	pass: {
+		type: DataTypes.TEXT,
+		allowNull: false
+	},
+	role_id: {
+		type: DataTypes.INTEGER,
+		allowNull: false
+	},
+	profile_photo: {
+		type: DataTypes.TEXT
+	},
+	relative_photo_url: {
+		type: DataTypes.TEXT
+	},
+	state: {
+		type: DataTypes.BOOLEAN,
+		defaultValue: false
+	},
+}, {
+	sequelize,
+	tableName: 'users',
+	timestamps: true,
+	underscored: true,
+});
 
-User.getUserById = async function (id) {
-  try {
-    return await this.findByPk(id);
-  } catch (error) {
-    return console.error(`Unable to find user by id: ${error}`);
-  }
-}
-
-User.updateUser = async function (id, updated_user) {
-  try {
-    const user = await this.findByPk(id);
-    user.update(updated_user);
-  } catch (error) {
-    console.error(`Unable to update the user: ${error}`);
-  }
-}
-
-User.toggleUserState = async function (id) {
-  try {
-    const user = await this.findByPk(id);
-    user.query("CALL sp_toggleUserState");
-  } catch (error) {
-    console.error(`Unable to patch user: ${error}`)
-  }
-}
+export { User };

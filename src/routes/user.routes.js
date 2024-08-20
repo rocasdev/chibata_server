@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { delUser, getUser, getUsers, postUser, putUser } from "../controllers/user.controller.js";
+import UserController from "../controllers/user.controller.js";
 
 const router = Router()
 
-router.get('/api/user/', getUsers)
-router.get('/api/user/:id', getUser)
-router.post('/api/user/', postUser)
-router.put('/api/user/:id', putUser)
-router.delete('/api/user/:id', delUser)
-
+router.get('/api/user/', UserController.getUsers)
+router.get('/api/user/:id', UserController.getUser)
+router.post('/api/user/', UserController.postUser)
+router.put('/api/user/:id', UserController.putUser)
+router.patch('/api/user/:id', UserController.patchUser)
 
 export default router

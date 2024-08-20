@@ -1,3 +1,5 @@
+SET GLOBAL time_zone = '-05:00';
+
 DROP DATABASE IF EXISTS chibata;
 
 CREATE DATABASE IF NOT EXISTS chibata;
@@ -20,9 +22,10 @@ CREATE TABLE users (
   pass TEXT NOT NULL,
   role_id INT NOT NULL,
   profile_photo TEXT,
+  relative_photo_url TEXT,
   state BOOLEAN DEFAULT FALSE,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
 
@@ -214,7 +217,7 @@ END //
 
 DELIMITER ;
 
-INSERT INTO roles (role_name) VALUE ("Administrador");
-INSERT INTO roles (role_name) VALUE ("Organizador");
-INSERT INTO roles (role_name) VALUE ("Voluntario");
-INSERT INTO users VALUES (NULL, "Kelly", "Rojas", "kelly@info.com", "CC", 1025896314, 3003000000, "si", 1, "foto.jpg", true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO roles (role_name) VALUES ("Administrador"), ("Organizador"), ("Voluntario");
+INSERT INTO users VALUES (NULL, "Kelly", "Rojas", "kelly@info.com", "CC", 1025896314, 3003000000, "si", 1, "foto.jpg", "../uploads/img/user_avatar/foto.jpg", true, NOW(), NOW());
+
+SELECT * FROM users;
