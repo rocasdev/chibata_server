@@ -27,11 +27,11 @@ class UserController {
 
 	static async postUser(req, res) {
 			try {
-					if (!req.files || !req.files.avatar) {
+					if (!req.files || !req.files.profile_photo) {
 							return res.status(400).json({ message: 'No se subió ningún archivo' });
 					}
 
-					const uploadedFile = req.files.avatar;
+					const uploadedFile = req.files.profile_photo;
 					const timestamp = Date.now();
 					const uniqueFileName = `${uploadedFile.name.split('.')[0]}_${timestamp}.${uploadedFile.name.split('.').pop()}`;
 					const uploadPath = path.join(__dirname, '../uploads/img/user_avatar/', uniqueFileName);
@@ -70,8 +70,8 @@ class UserController {
 					const u = req.body;
 					const user = await User.findByPk(id);
 
-					if (req.files && req.files.avatar) {
-							const uploadedFile = req.files.avatar;
+					if (req.files && req.files.profile_photo) {
+							const uploadedFile = req.files.profile_photo;
 							const timestamp = Date.now();
 							const uniqueFileName = `${uploadedFile.name.split('.')[0]}_${timestamp}.${uploadedFile.name.split('.').pop()}`;
 							const uploadPath = path.join(__dirname, '../uploads/img/user_avatar/', uniqueFileName);

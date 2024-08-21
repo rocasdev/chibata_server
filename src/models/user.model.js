@@ -1,16 +1,19 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../config/db.js';
 import { Role } from './role.model.js';
+import bcrypt from 'bcrypt'
 
 // Definición de la clase User que extiende de Model
 class User extends Model {
 	// Método para crear un nuevo usuario
 	static async createUser(user) {
 		try {
+			const hashedPassword = await bcrypt.hash(user.pass, 2)
+			user.pass = hashedPassword
 			return await this.create(user);
 		} catch (error) {
 			console.error(`Unable to create user: ${error}`);
-			throw error;
+			throw new Error("Cannot create user");
 		}
 	}
 
@@ -20,7 +23,7 @@ class User extends Model {
 			return await this.findAll({
 				include: [{
 					model: Role,
-					attributes: ['role_id', 'role_name'],
+					attributes: ['role_name'],
 				}],
 			});
 		} catch (error) {
@@ -32,7 +35,13 @@ class User extends Model {
 	// Método para obtener un usuario por su ID
 	static async getUserById(id) {
 		try {
-			return await this.findByPk(id);
+			return await this.findByPk({
+				where: { user_id: id },
+				include: [{
+					model: Role,
+					attributes: ['role_name'],
+				}],
+			});
 		} catch (error) {
 			console.error(`Unable to find user by id: ${error}`);
 			throw error;
@@ -62,6 +71,10 @@ class User extends Model {
 			throw error;
 		}
 	}
+
+	async comparePassword(pass) {
+        return await bcrypt.compare(pass, this.pass);
+    }
 }
 
 // Definición del modelo User en Sequelize

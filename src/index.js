@@ -11,7 +11,7 @@ async function main(){
         app.listen(process.env.PORT)
         console.log(`App listen on port ${process.env.PORT}`)
     } catch (error) {
-        console.error('Unable to connect to database')
+        console.error('Unable to connect to database: '+error)
     }
 }
 
