@@ -132,8 +132,9 @@ User.init({
 }, {
 	sequelize,
 	tableName: 'users',
-	timestamps: true,
 	underscored: true,
+	timestamps: true,
+	
 });
 
 export { User };
