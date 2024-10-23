@@ -1,0 +1,46 @@
+{
+  "material-icon-theme.files.associations": {
+    "db.ts": "database",
+    "relations.ts": "puppet",
+    "index.ts": "rocket",
+    "app.ts": "ionic"
+  },
+  "material-icon-theme.files.customClones": [
+    {
+      "name": "models-files",
+      "base": "database",
+      "color": "red-400",
+      "fileExtensions": ["model.ts"]
+    },
+    {
+      "name": "controllers-files",
+      "base": "settings",
+      "color": "yellow-400",
+      "fileExtensions": ["controller.ts"]
+    },
+    {
+      "name": "services-files",
+      "base": "smarty",
+      "color": "yellow-400",
+      "fileExtensions": ["service.ts"]
+    },
+    {
+      "name": "middleware-files",
+      "base": "verified",
+      "color": "indigo-400",
+      "fileExtensions": ["middleware.ts"]
+    },
+    {
+      "name": "util-files",
+      "base": "command",
+      "color": "green-400",
+      "fileExtensions": ["util.ts"]
+    },
+    {
+      "name": "hook-files",
+      "base": "dhall",
+      "color": "purple-300",
+      "fileExtensions": ["hook.ts"]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+    "name": "chibata_server",
+    "version": "1.0.0",
+    "description": "Chibatá is a web platform for managing environmental events in Bogotá, Colombia. This REST API provides endpoints for user management, eco-actions, and organizations, allowing users to create, read, update, and delete their environmental initiatives. It is built with ExpressJS and the Sequelize ORM, facilitating seamless database interactions and providing a clean, modular architecture for scalability and maintainability.",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon",
+        "build": "tsc",
+        "start": "node dist/index.js"
+    },
+    "keywords": [],
+    "author": "Andres Meza",
+    "license": "CC-BY-NC-ND-4.0",
+    "dependencies": {
+        "bcrypt": "5.1.1",
+        "bson-objectid": "2.0.4",
+        "chibata_server": "file:",
+        "cloudinary": "2.5.1",
+        "cookie-parser": "1.4.7",
+        "cors": "2.8.5",
+        "dotenv": "16.4.5",
+        "express": "4.21.1",
+        "express-fileupload": "1.5.1",
+        "express-session": "1.18.1",
+        "helmet": "^8.0.0",
+        "morgan": "1.10.0",
+        "mysql2": "3.11.3",
+        "sequelize": "6.37.4"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "5.0.2",
+        "@types/cookie-parser": "1.4.7",
+        "@types/cors": "2.8.17",
+        "@types/express": "5.0.0",
+        "@types/express-fileupload": "1.5.1",
+        "@types/express-session": "1.18.0",
+        "@types/helmet": "^0.0.48",
+        "@types/morgan": "1.9.9",
+        "@types/node": "22.7.6",
+        "@types/sequelize": "4.28.20",
+        "nodemon": "3.1.7",
+        "ts-node": "10.9.2",
+        "ts-node-dev": "2.0.0",
+        "typescript": "5.6.3"
+    }
+}
