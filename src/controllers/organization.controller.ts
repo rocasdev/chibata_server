@@ -5,7 +5,10 @@ import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
 } from "../utils/upload_image.util";
-import { OrganizationAttributes, OrganizationCreationAttributes } from "../models/organization.model";
+import {
+  OrganizationAttributes,
+  OrganizationCreationAttributes,
+} from "../models/organization.model";
 
 class OrganizationController {
   async postOrganization(req: Request, res: Response): Promise<void> {
@@ -62,7 +65,10 @@ class OrganizationController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      const organizations = await OrganizationService.findAllOrganizations(page, limit);
+      const organizations = await OrganizationService.findAllOrganizations(
+        page,
+        limit
+      );
       res.status(200).json({
         message: "Organizaciones recuperadas exitosamente",
         organizations: organizations.organizations,
@@ -94,6 +100,46 @@ class OrganizationController {
       console.error("Controller | Cannot find organization by id:", err);
       res.status(500).json({
         message: `Error interno al traer la organización: ${err.message}`,
+      });
+    }
+  }
+
+  async getOrganizationByLoggedMember(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const memberId: string = req.session.user_id || "";
+
+      if (!memberId) {
+        res.status(401).json({
+          message: "No se encontró el ID del miembro logueado",
+        });
+        return;
+      }
+
+      const organization = await OrganizationService.findOrganizationByLoggedMember(
+        memberId
+      );
+
+      if (!organization) {
+        res.status(404).json({
+          message: "No se encontró la organización del miembro logueado",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        message: "Organización recuperada exitosamente",
+        organization: organization,
+      });
+    } catch (err: any) {
+      console.error(
+        "Controller | Cannot find organization for logged member:",
+        err
+      );
+      res.status(500).json({
+        message: `Error interno al recuperar la organización del miembro: ${err.message}`,
       });
     }
   }
@@ -146,11 +192,9 @@ class OrganizationController {
           updatedOrganization.logo = result.secure_url;
           updatedOrganization.relative_logo_url = result.public_id;
         } catch (imageUploadError) {
-          res
-            .status(500)
-            .json({
-              message: "Error al subir el nuevo logo de la organización",
-            });
+          res.status(500).json({
+            message: "Error al subir el nuevo logo de la organización",
+          });
           return;
         }
       }
@@ -207,11 +251,9 @@ class OrganizationController {
       const { userId } = req.body;
 
       await OrganizationService.removeMember(organizationId, userId);
-      res
-        .status(200)
-        .json({
-          message: "Miembro eliminado correctamente de la organización",
-        });
+      res.status(200).json({
+        message: "Miembro eliminado correctamente de la organización",
+      });
     } catch (err: any) {
       console.error(
         "Controller | Cannot remove member from organization: ",

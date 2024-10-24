@@ -12,6 +12,7 @@ const DB_PASS: string = process.env.DB_PASS || "";
 const DB_SCHEMA: string = process.env.DB_SCHEMA || "";
 const DB_HOST: string = process.env.DB_HOST || "";
 const DB_PORT: number = parseInt(process.env.DB_PORT || "3306", 10);
+const DB_URI: string = process.env.DB_URI || "";
 
 // CLOUDINARY CONSTANTS
 const CDY_CLOUD_NAME: string = process.env.CDY_CLOUD_NAME || "";
@@ -37,4 +38,5 @@ export {
   EXS_SECRET_KEY,
   NODE_ENV,
   BPT_SALT,
+  DB_URI,
 };

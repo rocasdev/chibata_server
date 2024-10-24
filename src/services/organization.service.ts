@@ -150,6 +150,29 @@ class OrganizationService {
     }
   }
 
+  static async findOrganizationByLoggedMember(memberId: string) {
+    try {
+      if (!memberId) {
+        throw new Error("Member ID is required");
+      }
+
+      const memId = Buffer.from(memberId, "hex");
+
+      const organizationMember = await OrganizationMember.findOne({
+        where: { member_id: memId },
+      });
+
+      const organization = await Organization.findByPk(
+        organizationMember?.organization_id
+      );
+
+      return organization;
+    } catch (err: any) {
+      console.error("Cannot find organization by member:", err);
+      throw new Error(`Error fetching organization by member: ${err.message}`);
+    }
+  }
+
   static async deleteOrganization(id: string) {
     const t = await sequelize.transaction();
     try {

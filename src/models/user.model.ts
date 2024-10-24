@@ -41,6 +41,7 @@ class User extends Model<UserAttributes> implements UserAttributes {
   public relative_avatar_url?: string;
   public is_active!: boolean;
   public role_id!: number;
+  public organizations?: Organization[] | null;
   public readonly Role!: Role;
   public readonly created_at!: string;
   public readonly updated_at!: string;

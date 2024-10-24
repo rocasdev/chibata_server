@@ -93,7 +93,7 @@ class EventController {
         try {
           const result: any = await uploadImageToCloudinary(
             banner_file.data,
-            "event_banner" 
+            "event_banner"
           );
           newEvent.banner = result.secure_url;
           newEvent.relative_banner_url = result.public_id;
@@ -261,6 +261,105 @@ class EventController {
       res.status(500).json({
         message: `Error interno al cambiar el estado del evento: ${err.message}`,
       });
+    }
+  }
+
+  async getEventsByLoggedUser(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.session.user_id;
+
+      if (!userId) {
+        res.status(500).json({
+          message: "No se pudo traer el evento, no hay usuario logueado.",
+        });
+        throw new Error("No se pudo traer el evento, no hay usuario logueado.");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const events = await EventService.findEventByOrganizationId(
+        userId,
+        page,
+        limit
+      );
+      res.status(200).json({
+        message: "Eventos recuperados exitosamente",
+        events: events.events,
+        totalPages: events.totalPages,
+        currentPage: events.currentPage,
+        totalItems: events.totalItems,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot find all events:", err);
+      res.status(500).json({
+        message: `Error interno al traer los eventos: ${err.message}`,
+      });
+    }
+  }
+
+  async getEventsByCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const categoryId = req.params.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await EventService.findEventsByCategory(
+        categoryId,
+        page,
+        limit
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Events retrieved successfully",
+        events: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to retrieve events",
+        error: error,
+      });
+    }
+  }
+
+  async volunteerRegistration(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId = req.params.id;
+      const userId = req.session.user_id;
+
+      if (!userId) {
+        res.status(500).json({
+          message: "No se pudo registrar el usuario, no hay usuario logueado.",
+        });
+        throw new Error("No se pudo registrar el usuario, no hay usuario logueado.");
+      }
+
+      const event = await EventService.findEventById(eventId);
+      if (!event) {
+        res.status(404).json({ message: "Evento no encontrado" });
+        return;
+      }
+
+      const volunteer = await EventService.findOneRegistration(
+        eventId,
+        userId
+      );
+
+      if (volunteer) {
+        res.status(400).json({ message: "El usuario ya está registrado" });
+        return;
+      }
+
+      await EventService.volunteerRegistration(eventId, userId);
+
+      res.status(200).json({ message: "Registro exitoso" });
+    } catch (err: any) {
+      console.error("Controller | Cannot volunteer for event: ", err);
+      res.status(500).json({
+        message: `Error interno al registrarse como voluntario: ${err.message}`,
+      });
+      throw new Error("Error interno al registrarse en el evento como voluntario.");
     }
   }
 }

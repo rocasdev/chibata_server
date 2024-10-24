@@ -16,6 +16,7 @@ import NotificationRoutes from "./routes/notification.routes";
 import CategoryRoutes from "./routes/category.routes";
 import OrganizationRoutes from "./routes/organization.routes";
 import EventRoutes from "./routes/event.routes";
+import OrganizerRoutes from "./routes/organizer.routes";
 
 const app: Express = express();
 
@@ -30,7 +31,7 @@ function setupMiddlewares(app: Express) {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: ["http://localhost:3000"],
       credentials: true,
     })
   );
@@ -58,4 +59,5 @@ function setupRoutes(app: Express) {
   app.use("/api/categories", CategoryRoutes.getRouter());
   app.use("/api/organizations", OrganizationRoutes.getRouter());
   app.use("/api/events", EventRoutes.getRouter());
+  app.use("/api/organizer", OrganizerRoutes.getRouter());
 }

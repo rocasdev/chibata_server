@@ -75,6 +75,12 @@ class OrganizationRoutes {
       this.authMiddleware.isAuthenticated,
       this.organizationController.getMembers
     );
+
+    this.router.get(
+      "/myorg",
+      this.authMiddleware.isAuthenticated,
+      this.organizationController.getOrganizationByLoggedMember
+    );
   }
 
   public getRouter(): Router {

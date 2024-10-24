@@ -16,7 +16,7 @@ class EventRoutes {
 
   private initializeRoutes(): void {
     this.router.post(
-      "/create",
+      "/",
       this.authMiddleware.isAuthenticated,
       this.eventController.createEvent
     );
@@ -32,6 +32,16 @@ class EventRoutes {
       this.authMiddleware.isAuthenticated,
       this.eventController.toggleEventState
     );
+    this.router.get(
+      "/category/:id",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.getEventsByCategory
+    );
+    this.router.post(
+      "/enroll/:id",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.volunteerRegistration
+    )
   }
 
   public getRouter(): Router {
