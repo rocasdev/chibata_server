@@ -30,10 +30,7 @@ function setupMiddlewares(app: Express) {
   app.use(express.json());
   app.use(cookieParser());
   app.use(
-    cors({
-      origin: "https://chibataclientv1-production.up.railway.app",
-      credentials: true,
-    })
+    cors({})
   );
   app.use(
     session({
