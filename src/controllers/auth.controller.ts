@@ -221,7 +221,7 @@ class AuthController {
       );
 
       // Construir URL de restablecimiento
-      const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}`;
+      const resetUrl = `https://chibataclientv1-production.up.railway.app/auth/reset-password?token=${token}`;
 
       // Leer la plantilla HTML
       const templatePath = path.join(
