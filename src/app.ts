@@ -30,7 +30,7 @@ function setupMiddlewares(app: Express) {
   app.use(express.json());
   app.use(cookieParser());
   app.use(
-    cors({})
+    cors({ origin: '*', credentials: true})
   );
   app.use(
     session({
