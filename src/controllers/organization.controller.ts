@@ -4,7 +4,7 @@ import { UploadedFile } from "express-fileupload";
 import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
-} from "../utils/upload_image.util";
+} from "../utils/uploadimage.util";
 import {
   OrganizationAttributes,
   OrganizationCreationAttributes,

@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
-} from "../utils/upload_image.util";
+} from "../utils/uploadimage.util";
 import { UploadedFile } from "express-fileupload";
 import { UserCreationAttributes } from "../models/user.model";
 

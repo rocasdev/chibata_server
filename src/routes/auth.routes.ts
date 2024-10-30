@@ -16,6 +16,7 @@ class AuthRoutes {
     this.router.post("/register-volunteer", this.authController.registerVolunteer);
     this.router.post("/register-organization", this.authController.registerOrganization);
     this.router.post("/logout", this.authController.logout);
+    this.router.post("/forgot-password", this.authController.forgotPasswordEmail);
   }
 
   public getRouter(): Router {

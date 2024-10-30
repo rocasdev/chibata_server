@@ -25,6 +25,13 @@ const EXS_SECRET_KEY: string = process.env.EXS_SECRET_KEY || "";
 // BCRYPT SALT CONSTANTS
 const BPT_SALT: number = parseInt(process.env.BPT_SALT || "10", 10);
 
+// JWT CONSTANTS
+const JWT_SECRET: string = process.env.JWT_SECRET || "";
+
+// NODEMAILER CONSTANTS
+const NODEMAILER_USER: string = process.env.NODEMAILER_USER || "";
+const NODEMAILER_PASS: string = process.env.NODEMAILER_PASS || "";
+
 export {
   PORT,
   DB_USER,
@@ -39,4 +46,7 @@ export {
   NODE_ENV,
   BPT_SALT,
   DB_URI,
+  JWT_SECRET,
+  NODEMAILER_USER,
+  NODEMAILER_PASS,
 };

@@ -1,10 +1,13 @@
 import { UserService } from "../services/user.service";
 import { OrganizationService } from "../services/organization.service";
 import { Request, Response } from "express";
-import { uploadImageToCloudinary } from "../utils/upload_image.util";
+import { uploadImageToCloudinary } from "../utils/uploadimage.util";
 import { UploadedFile } from "express-fileupload";
 import { UserCreationAttributes } from "../models/user.model";
 import { OrganizationCreationAttributes } from "../models/organization.model";
+import path from "path";
+import fs from "fs/promises";
+import { sendEmail } from "../utils/mailsender.util";
 
 declare module "express-session" {
   interface SessionData {
@@ -127,11 +130,12 @@ class AuthController {
       await OrganizationService.addMember(
         createdOrganization.organization_id.toString("hex"),
         createdUser.user_id.toString("hex"),
-        "Representante",
+        "Representante"
       );
 
       res.status(201).json({
-        message: "Organización y usuario representante registrados correctamente",
+        message:
+          "Organización y usuario representante registrados correctamente",
         organization: createdOrganization,
         user: {
           user_id: createdUser.user_id.toString("hex"),
@@ -197,6 +201,59 @@ class AuthController {
     }
   }
 
+  async forgotPasswordEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const email = req.body.email;
+      const user = await UserService.findUserByEmail(email);
+
+      // Siempre devolver el mismo mensaje por seguridad
+      const successMessage =
+        "Si existe un usuario registrado con este correo, se enviará un enlace para restablecer la contraseña.";
+
+      if (!user) {
+        res.status(200).json({ message: successMessage });
+        return;
+      }
+
+      // Generar token
+      const token = await UserService.generatePasswordResetToken(
+        user.user_id.toString("hex")
+      );
+
+      // Construir URL de restablecimiento
+      const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}`;
+
+      // Leer la plantilla HTML
+      const templatePath = path.join(
+        __dirname,
+        "../email/forgottedPassword.html"
+      );
+      let htmlContent = await fs.readFile(templatePath, "utf-8");
+
+      // Reemplazar valores en la plantilla
+      htmlContent = htmlContent
+        .replace(/{{resetLink}}/g, resetUrl);
+
+      // Enviar el correo
+      await sendEmail(
+        user.email,
+        "Restablecimiento de contraseña",
+        htmlContent
+      );
+
+      // Responder con mensaje de éxito
+      res.status(200).json({ message: successMessage });
+    } catch (err: any) {
+      console.error("Error en forgotPasswordEmail:", err);
+
+      // Enviar respuesta genérica de error
+      res.status(500).json({
+        message:
+          "Ha ocurrido un error al procesar la solicitud. Por favor, inténtalo más tarde.",
+      });
+    }
+  }
+
   async logout(req: Request, res: Response): Promise<void> {
     req.session.destroy((err) => {
       if (err) {
@@ -209,4 +266,4 @@ class AuthController {
   }
 }
 
-export default new AuthController()
+export default new AuthController();

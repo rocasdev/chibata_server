@@ -8,7 +8,7 @@ import { UploadedFile } from "express-fileupload";
 import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
-} from "../utils/upload_image.util";
+} from "../utils/uploadimage.util";
 import { generateSlug } from "../utils/slug.util"; // Asumiendo que tienes una función para generar slugs
 
 class EventController {

@@ -11,6 +11,8 @@ import { BPT_SALT } from "../config/constants";
 import { Sequelize } from "sequelize";
 import ObjectID from "bson-objectid";
 import { Organization } from "../models/organization.model";
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/constants";
 
 class UserService {
   constructor() {
@@ -84,6 +86,34 @@ class UserService {
     }
   }
 
+  static async generatePasswordResetToken(userId: string) {
+    try {
+      const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "10m" });
+      return token;
+    } catch (err: any) {
+      console.error("Cannot generate password reset token:", err);
+      throw new Error(`Error generating password reset token: ${err.message}`);
+    }
+  }
+
+  static async resetPasswordByToken(token: string, newPassword: string) {
+    try {
+      const decodedToken: any = jwt.verify(token, JWT_SECRET);
+      const userId = decodedToken.userId;
+      const oid = Buffer.from(userId, "hex");
+      const user = await User.findByPk(oid);
+      if (!user) {
+        throw new Error(`User with id ${userId} not found or token not valid`);
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, BPT_SALT);
+      await user.update({ pass: hashedPassword });
+      return user;
+    } catch (err: any) {
+      console.error("Cannot reset password by token:", err);
+      throw new Error(`Error resetting password by token: ${err.message}`);
+    }
+  }
+
   static async findUserByEmail(email: string): Promise<User | null> {
     try {
       const user = await User.findOne({
@@ -120,7 +150,7 @@ class UserService {
       const organizations = user.Organizations.map((org: any) => {
         return {
           organization_id: org.organization_id.toString("hex"),
-          name: org.name, 
+          name: org.name,
         };
       });
 
