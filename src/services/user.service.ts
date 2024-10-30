@@ -96,6 +96,17 @@ class UserService {
     }
   }
 
+  static async validatePasswordResetToken(token: string) {
+    try {
+      if (!token) return false;
+      jwt.verify(token, JWT_SECRET); // Solo verifica el token
+      return true;
+    } catch (err: any) {
+      console.error("Cannot validate password reset token:", err);
+      return false; // Devuelve falso si el token es inválido o expirado
+    }
+  }
+
   static async resetPasswordByToken(token: string, newPassword: string) {
     try {
       const decodedToken: any = jwt.verify(token, JWT_SECRET);
@@ -105,6 +116,7 @@ class UserService {
       if (!user) {
         throw new Error(`User with id ${userId} not found or token not valid`);
       }
+
       const hashedPassword = await bcrypt.hash(newPassword, BPT_SALT);
       await user.update({ pass: hashedPassword });
       return user;

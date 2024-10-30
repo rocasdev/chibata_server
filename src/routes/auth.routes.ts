@@ -17,6 +17,8 @@ class AuthRoutes {
     this.router.post("/register-organization", this.authController.registerOrganization);
     this.router.post("/logout", this.authController.logout);
     this.router.post("/forgot-password", this.authController.forgotPasswordEmail);
+    this.router.post("/verify-token", this.authController.validateResetToken);
+    this.router.post("/reset-password", this.authController.resetPassword);
   }
 
   public getRouter(): Router {

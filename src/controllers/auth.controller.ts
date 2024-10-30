@@ -254,6 +254,47 @@ class AuthController {
     }
   }
 
+  async validateResetToken(req: Request, res: Response): Promise<void> {
+    try {
+      const token = req.body.token;
+      const isValid = await UserService.validatePasswordResetToken(token);
+
+      if (isValid) {
+        res.status(200).json({ message: "Token válido", valid: true });
+      } else {
+        res.status(400).json({ message: "Token no válido", valid: false });
+      }
+    } catch (err: any) {
+      console.error("Error en validateResetToken:", err);
+      res.status(500).json({
+        message:
+          "Ha ocurrido un error al procesar la solicitud. Por favor, inténtalo más tarde.",
+      });
+    }
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, password } = req.body;
+      const user = await UserService.resetPasswordByToken(token, password);
+
+      if (!user) {
+        res.status(400).json({ message: "Token no válido o expirado" });
+        return;
+      }
+
+      res.status(200).json({ message: "Contraseña restablecida correctamente" });
+    } catch (err: any) {
+      console.error("Error en resetPassword:", err);
+      res.status(500).json({
+        message:
+          "Ha ocurrido un error al procesar la solicitud. Por favor, inténtalo más tarde.",
+      });
+    }
+  }
+
+  
+
   async logout(req: Request, res: Response): Promise<void> {
     req.session.destroy((err) => {
       if (err) {
