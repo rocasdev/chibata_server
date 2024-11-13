@@ -200,17 +200,13 @@ class EventController {
         longitude: data.longitude
           ? parseFloat(data.longitude)
           : existingEvent.longitude,
-        organizer_id: data.organizer_id
-          ? Buffer.from(data.organizer_id, "hex")
-          : existingEvent.organizer_id,
-        organization_id: data.organization_id
-          ? Buffer.from(data.organization_id, "hex")
-          : existingEvent.organization_id,
         category_id: data.category_id
           ? Buffer.from(data.category_id, "hex")
           : existingEvent.category_id,
         status: data.status || existingEvent.status,
         max_volunteers: data.max_volunteers || existingEvent.max_volunteers,
+        current_volunteers:
+          data.current_volunteers || existingEvent.current_volunteers,
         is_active:
           data.is_active !== undefined
             ? data.is_active
@@ -432,20 +428,59 @@ class EventController {
     }
   }
 
-  async validateUserIsEnrollInEvent(req: Request, res: Response): Promise<void> {
+  async validateUserIsEnrollInEvent(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const eventId = req.params.id;
       const userId = req.session.user_id;
       if (!userId) {
-        res.status(401).json({ message: "No se encuentra el ID del usuario logueado" });
+        res
+          .status(401)
+          .json({ message: "No se encuentra el ID del usuario logueado" });
         return;
       }
-      const isEnrolled = await EventService.validateUserIsEnrollInEvent(eventId, userId);
+      const isEnrolled = await EventService.validateUserIsEnrollInEvent(
+        eventId,
+        userId
+      );
       res.status(200).json({ isIn: isEnrolled });
-    }catch(err: any) {
+    } catch (err: any) {
       console.error("Controller | Cannot find enroll:", err);
       res.status(500).json({
         message: `Error interno al encontrar el enroll: ${err.message}`,
+      });
+    }
+  }
+
+  async getRegistrationsByEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const event_id = req.params.id;
+      if (!event_id) {
+        res.status(404).json({ message: "No se encontró el evento" });
+        return;
+      }
+
+      const registrations = await EventService.getRegistrationsByEventId(
+        event_id, page, limit
+      );
+
+      console.log(registrations);
+
+      res.status(200).json({
+        message: "Registros obtenidos correctamente",
+        registrations: registrations.registrations,
+        totalPages: registrations.totalPages,
+        currentPage: registrations.currentPage,
+        totalItems: registrations.totalItems,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot find registrations:", err);
+      res.status(500).json({
+        message: `Error interno al encontrar los voluntarios: ${err.message}`,
       });
     }
   }

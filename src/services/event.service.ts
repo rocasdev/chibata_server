@@ -125,23 +125,70 @@ class EventService {
     try {
       const oid = Buffer.from(id, "hex");
       const event = await Event.findByPk(oid, {
-        attributes: {
-          include: [
-            [Sequelize.fn("HEX", Sequelize.col("event_id")), "event_id"],
+        attributes: [
+          [Sequelize.fn("HEX", Sequelize.col("Event.event_id")), "event_id"],
+          "title",
+          "description",
+          "slug",
+          "date_time",
+          "address",
+          "latitude",
+          "longitude",
+          "banner",
+          "relative_banner_url",
+          "status",
+          "is_active",
+          "max_volunteers",
+          "current_volunteers",
+          "created_at",
+          "updated_at",
+          [
+            Sequelize.fn("HEX", Sequelize.col("Event.organization_id")),
+            "organization_id",
           ],
-        },
+          [
+            Sequelize.fn("HEX", Sequelize.col("Event.organizer_id")),
+            "organizer_id",
+          ],
+          [
+            Sequelize.fn("HEX", Sequelize.col("Event.category_id")),
+            "category_id",
+          ],
+        ],
         include: [
           {
             model: Organization,
-            attributes: ["name", "logo"],
+            attributes: [
+              [
+                Sequelize.fn(
+                  "HEX",
+                  Sequelize.col("Organization.organization_id")
+                ),
+                "organization_id",
+              ],
+              "name",
+              "logo",
+            ],
           },
           {
             model: User,
-            attributes: ["firstname", "surname", "avatar"],
+            attributes: [
+              [Sequelize.fn("HEX", Sequelize.col("User.user_id")), "user_id"],
+              "firstname",
+              "surname",
+              "avatar",
+            ],
           },
           {
             model: Category,
-            attributes: ["name", "is_active"],
+            attributes: [
+              [
+                Sequelize.fn("HEX", Sequelize.col("Category.category_id")),
+                "category_id",
+              ],
+              "name",
+              "is_active",
+            ],
           },
         ],
       });
@@ -515,14 +562,18 @@ class EventService {
     }
   }
 
-  static async getRegistrationsByEventId(eventId: string) {
+  static async getRegistrationsByEventId(
+    eventId: string,
+    page: number = 1,
+    limit: number = 10
+  ) {
     try {
+      const offset = (page - 1) * limit;
       const oid = Buffer.from(eventId, "hex");
-      const registrations = await EventRegistration.findAll({
+      const { count, rows: registrations } = await EventRegistration.findAndCountAll({
         where: { event_id: oid },
         attributes: {
           include: [
-            [Sequelize.fn("HEX", Sequelize.col("EventRegistration.id")), "id"],
             [
               Sequelize.fn(
                 "HEX",
@@ -534,13 +585,7 @@ class EventService {
               Sequelize.fn("HEX", Sequelize.col("EventRegistration.event_id")),
               "event_id",
             ],
-            [
-              Sequelize.fn(
-                "HEX",
-                Sequelize.col("EventRegistration.attendance_status")
-              ),
-              "attendance_status",
-            ],
+            "attendance_status"
           ],
         },
         include: [
@@ -554,9 +599,20 @@ class EventService {
             ],
           },
         ],
+        limit,
+        offset,
         order: [["created_at", "DESC"]],
       });
-      return registrations;
+
+      console.log(registrations);
+      const totalPages = Math.ceil(count / limit);
+
+      return {
+        registrations,
+        totalPages,
+        currentPage: page,
+        totalItems: count,
+      };
     } catch (err: any) {
       console.error("Cannot find registrations by event id:", err);
       throw new Error(
