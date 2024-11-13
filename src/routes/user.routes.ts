@@ -47,6 +47,12 @@ class UserRoutes {
       this.authMiddleware.isAuthenticated,
       this.userController.putUser
     );
+    this.router.patch(
+      "/:id/toggle-is-active",
+      this.authMiddleware.isAuthenticated,
+      this.authMiddleware.isAdmin,
+      this.userController.toggleUserState
+    )
   }
 
   public getRouter(): Router {

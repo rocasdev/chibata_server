@@ -26,6 +26,8 @@ class EventController {
         longitude: parseFloat(data.longitude),
         banner: "",
         relative_banner_url: "",
+        max_volunteers: data.max_volunteers,
+        current_volunteers: 0,
         organizer_id: Buffer.from(data.organizer_id, "hex"),
         organization_id: Buffer.from(data.organization_id, "hex"),
         category_id: Buffer.from(data.category_id, "hex"),
@@ -82,6 +84,8 @@ class EventController {
         longitude: parseFloat(data.longitude),
         banner: "",
         relative_banner_url: "",
+        max_volunteers: data.max_volunteers,
+        current_volunteers: 0,
         category_id: Buffer.from(data.category_id, "hex"),
         status: data.status || "Programado",
         is_active: data.is_active ?? true,
@@ -206,6 +210,7 @@ class EventController {
           ? Buffer.from(data.category_id, "hex")
           : existingEvent.category_id,
         status: data.status || existingEvent.status,
+        max_volunteers: data.max_volunteers || existingEvent.max_volunteers,
         is_active:
           data.is_active !== undefined
             ? data.is_active
@@ -254,7 +259,7 @@ class EventController {
       const updatedEvent = await EventService.toggleEventState(eventId);
       res.status(200).json({
         message: "Estado del evento actualizado correctamente",
-        is_active: updatedEvent.is_active,
+        event: updatedEvent,
       });
     } catch (err: any) {
       console.error("Controller | Cannot toggle event state:", err);
@@ -332,7 +337,9 @@ class EventController {
         res.status(500).json({
           message: "No se pudo registrar el usuario, no hay usuario logueado.",
         });
-        throw new Error("No se pudo registrar el usuario, no hay usuario logueado.");
+        throw new Error(
+          "No se pudo registrar el usuario, no hay usuario logueado."
+        );
       }
 
       const event = await EventService.findEventById(eventId);
@@ -341,10 +348,7 @@ class EventController {
         return;
       }
 
-      const volunteer = await EventService.findOneRegistration(
-        eventId,
-        userId
-      );
+      const volunteer = await EventService.findOneRegistration(eventId, userId);
 
       if (volunteer) {
         res.status(400).json({ message: "El usuario ya está registrado" });
@@ -359,7 +363,90 @@ class EventController {
       res.status(500).json({
         message: `Error interno al registrarse como voluntario: ${err.message}`,
       });
-      throw new Error("Error interno al registrarse en el evento como voluntario.");
+      throw new Error(
+        "Error interno al registrarse en el evento como voluntario."
+      );
+    }
+  }
+
+  async getEventsByDate(req: Request, res: Response): Promise<void> {
+    try {
+      const dateStr = req.query.date as string;
+      if (!dateStr) {
+        res.status(400).json({ message: "Se requiere una fecha" });
+        return;
+      }
+
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        res.status(400).json({ message: "Formato de fecha inválido" });
+        return;
+      }
+
+      const events = await EventService.getEventsByDate(date);
+      res.status(200).json({
+        message: "Eventos recuperados exitosamente",
+        events: events,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot find events by date:", err);
+      res.status(500).json({
+        message: `Error interno al traer los eventos por fecha: ${err.message}`,
+      });
+    }
+  }
+
+  async getEventsByDateRange(req: Request, res: Response): Promise<void> {
+    try {
+      const startDateStr = req.query.startDate as string;
+      const endDateStr = req.query.endDate as string;
+
+      if (!startDateStr || !endDateStr) {
+        res
+          .status(400)
+          .json({ message: "Se requieren fechas de inicio y fin" });
+        return;
+      }
+
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        res.status(400).json({ message: "Formato de fecha inválido" });
+        return;
+      }
+
+      const events = await EventService.getEventsByDateRange(
+        startDate,
+        endDate
+      );
+      res.status(200).json({
+        message: "Eventos recuperados exitosamente",
+        events: events,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot find events by date range:", err);
+      res.status(500).json({
+        message: `Error interno al traer los eventos por rango de fechas: ${err.message}`,
+      });
+    }
+  }
+
+  async validateUserIsEnrollInEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId = req.params.id;
+      const userId = req.session.user_id;
+      if (!userId) {
+        res.status(401).json({ message: "No se encuentra el ID del usuario logueado" });
+        return;
+      }
+      const isEnrolled = await EventService.validateUserIsEnrollInEvent(eventId, userId);
+      res.status(200).json({ isIn: isEnrolled });
+    }catch(err: any) {
+      console.error("Controller | Cannot find enroll:", err);
+      res.status(500).json({
+        message: `Error interno al encontrar el enroll: ${err.message}`,
+      });
     }
   }
 }

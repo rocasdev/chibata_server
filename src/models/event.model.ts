@@ -18,6 +18,8 @@ interface EventAttributes {
   category_id: Buffer;
   status: "Programado" | "En progreso" | "Cancelado" | "Finalizado";
   is_active: boolean;
+  max_volunteers: number;
+  current_volunteers: number;
 }
 
 interface EventCreationAttributes extends Omit<EventAttributes, "event_id"> {}
@@ -38,6 +40,8 @@ class Event extends Model<EventAttributes> implements EventAttributes {
   public category_id!: Buffer;
   public status!: "Programado" | "En progreso" | "Cancelado" | "Finalizado";
   public is_active!: boolean;
+  public max_volunteers!: number;
+  public current_volunteers!: number;
   public readonly created_at!: string;
   public readonly updated_at!: string;
 }
@@ -121,6 +125,15 @@ Event.init(
         key: "organization_id",
       },
     },
+    max_volunteers: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    current_volunteers: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    }
   },
   {
     sequelize,

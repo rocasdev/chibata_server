@@ -31,7 +31,7 @@ function setupMiddlewares(app: Express) {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: "https://chibataclientv1-production.up.railway.app", // Dominio del cliente
+      origin: "http://localhost:3000", // Dominio del cliente
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Métodos HTTP permitidos
       credentials: true,
     })

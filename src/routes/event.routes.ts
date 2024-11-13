@@ -41,7 +41,17 @@ class EventRoutes {
       "/enroll/:id",
       this.authMiddleware.isAuthenticated,
       this.eventController.volunteerRegistration
-    )
+    );
+    this.router.get(
+      "/date",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.getEventsByDate
+    );
+    this.router.get(
+      "/is-enroll/:id",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.validateUserIsEnrollInEvent
+    );
   }
 
   public getRouter(): Router {

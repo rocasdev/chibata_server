@@ -49,6 +49,8 @@ class EventService {
           "relative_banner_url",
           "status",
           "is_active",
+          "max_volunteers",
+          "current_volunteers",
           "created_at",
           "updated_at",
           [
@@ -180,6 +182,8 @@ class EventService {
           "relative_banner_url",
           "status",
           "is_active",
+          "max_volunteers",
+          "current_volunteers",
           "created_at",
           "updated_at",
           [
@@ -439,6 +443,8 @@ class EventService {
           "relative_banner_url",
           "status",
           "is_active",
+          "max_volunteers",
+          "current_volunteers",
           "created_at",
           "updated_at",
           [
@@ -582,6 +588,8 @@ class EventService {
       if (!event) {
         throw new Error(`Event with id ${eventId} not found`);
       }
+      event.current_volunteers += 1;
+      event.save();
       const userOid = Buffer.from(userId, "hex");
       const user = await User.findByPk(userOid, { transaction: t });
       if (!user) {
@@ -601,6 +609,139 @@ class EventService {
       await t.rollback();
       console.error("Cannot register user for event:", err);
       throw new Error(`Error registering user for event: ${err.message}`);
+    }
+  }
+
+  static async getEventsByDate(date: Date) {
+    try {
+      const events = await Event.findAll({
+        where: {
+          date_time: {
+            [Op.gte]: date,
+            [Op.lt]: new Date(date.getTime() + 24 * 60 * 60 * 1000), // Siguiente día
+          },
+          is_active: true,
+        },
+        order: [["date_time", "ASC"]],
+        attributes: {
+          include: [
+            [Sequelize.fn("HEX", Sequelize.col("event_id")), "event_id"],
+            [
+              Sequelize.fn("HEX", Sequelize.col("organizer_id")),
+              "organizer_id",
+            ],
+            [
+              Sequelize.fn("HEX", Sequelize.col("organization_id")),
+              "organization_id",
+            ],
+            [Sequelize.fn("HEX", Sequelize.col("category_id")), "category_id"],
+          ],
+        },
+        include: [
+          {
+            model: Organization,
+            attributes: [
+              [
+                Sequelize.fn(
+                  "HEX",
+                  Sequelize.col("Organization.organization_id")
+                ),
+                "organization_id",
+              ],
+              "name",
+              "logo",
+            ],
+          },
+          {
+            model: Category,
+            attributes: [
+              [
+                Sequelize.fn("HEX", Sequelize.col("Category.category_id")),
+                "category_id",
+              ],
+              "name",
+            ],
+          },
+        ],
+      });
+      return events;
+    } catch (err: any) {
+      console.error("Cannot find events by date:", err);
+      throw new Error(`Error fetching events by date: ${err.message}`);
+    }
+  }
+
+  static async getEventsByDateRange(startDate: Date, endDate: Date) {
+    try {
+      const events = await Event.findAll({
+        where: {
+          date_time: {
+            [Op.between]: [startDate, endDate],
+          },
+          is_active: true,
+        },
+        order: [["date_time", "ASC"]],
+        attributes: {
+          include: [
+            [Sequelize.fn("HEX", Sequelize.col("event_id")), "event_id"],
+            [
+              Sequelize.fn("HEX", Sequelize.col("organizer_id")),
+              "organizer_id",
+            ],
+            [
+              Sequelize.fn("HEX", Sequelize.col("organization_id")),
+              "organization_id",
+            ],
+            [Sequelize.fn("HEX", Sequelize.col("category_id")), "category_id"],
+          ],
+        },
+        include: [
+          {
+            model: Organization,
+            attributes: [
+              [
+                Sequelize.fn(
+                  "HEX",
+                  Sequelize.col("Organization.organization_id")
+                ),
+                "organization_id",
+              ],
+              "name",
+              "logo",
+            ],
+          },
+          {
+            model: Category,
+            attributes: [
+              [
+                Sequelize.fn("HEX", Sequelize.col("Category.category_id")),
+                "category_id",
+              ],
+              "name",
+            ],
+          },
+        ],
+      });
+      return events;
+    } catch (err: any) {
+      console.error("Cannot find events by date range:", err);
+      throw new Error(`Error fetching events by date range: ${err.message}`);
+    }
+  }
+
+  static async validateUserIsEnrollInEvent(event_id: string, user_id: string) {
+    try {
+      const event_oid = Buffer.from(event_id, "hex");
+      const user_oid = Buffer.from(user_id, "hex");
+      const registration = await EventRegistration.findOne({
+        where: { event_id: event_oid, volunteer_id: user_oid },
+      });
+      return registration ? true : false;
+    } catch (err: any) {
+      console.error("Cannot validate user enrollment in event:", err);
+      throw new Error(
+        `Error validating user enrollment in event: ${err.message}`
+      );
     }
   }
 }

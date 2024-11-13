@@ -201,8 +201,9 @@ class UserService {
 
   static async toggleUserState(id: string) {
     const t = await sequelize.transaction();
+    const oid = Buffer.from(id, "hex");
     try {
-      const user = await User.findByPk(id, { transaction: t });
+      const user = await User.findByPk(oid, { transaction: t });
       if (!user) {
         throw new Error(`User with id ${id} not found`);
       }

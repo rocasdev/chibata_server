@@ -191,6 +191,20 @@ class UserController {
       );
     }
   }
+
+  async toggleUserState(req: Request, res: Response): Promise<void> {
+    const userId = req.params.id;
+    try {
+      const user = await UserService.toggleUserState(userId)
+      res.status(200).json({ message: "Usuario estado actualizado correctamente", user: user });
+    } catch (err: any) {
+      console.error("Controller | Cannot toggle user state");
+      res.status(500).json({ message: `Error interno al cambiar el estado del usuario: ${err.message}` })
+      throw new Error(
+        `Controller throws error | cannot toggle user state: ${err.message}`
+      )
+    }
+  }
 }
 
 export default new UserController();
