@@ -8,7 +8,6 @@ import { Certificate } from "./certificate.model";
 import { Notification } from "./notification.model";
 import { OrganizationMember } from "./organization_member.model";
 import { EventRegistration } from "./event_registration.model";
-import { UserCertificate } from "./user_certificate.model";
 
 // Role has many Users
 Role.hasMany(User, {
@@ -89,20 +88,20 @@ Event.hasOne(Certificate, {
 Certificate.belongsTo(Event, { foreignKey: "event_id" });
 
 // User has many User Certificates
-User.hasMany(UserCertificate, {
+User.hasMany(Certificate, {
   foreignKey: "user_id",
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
-UserCertificate.belongsTo(User, { foreignKey: "user_id" });
+Certificate.belongsTo(User, { foreignKey: "user_id" });
 
-// Certificate has many User Certificates
-Certificate.hasMany(UserCertificate, {
-  foreignKey: "certificate_id",
+Organization.hasMany(Certificate, {
+  foreignKey: "organization_id",
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
-UserCertificate.belongsTo(Certificate, { foreignKey: "certificate_id" });
+
+Certificate.belongsTo(Organization, { foreignKey: "organization_id" });
 
 // User has many Notifications
 User.hasMany(Notification, {

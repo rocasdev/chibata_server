@@ -4,7 +4,8 @@ import { Model, DataTypes } from "sequelize";
 interface EventRegistrationAttributes {
   event_id: Buffer;
   volunteer_id: Buffer;
-  attendance_status: "Registrado" | "Asistido" | "Cancelado";
+  attendance_status: "Registrado" | "Asistio" | "Cancelo" | "No Asistio";
+  is_certificated: boolean;
 }
 
 class EventRegistration
@@ -13,7 +14,8 @@ class EventRegistration
 {
   public event_id!: Buffer;
   public volunteer_id!: Buffer;
-  public attendance_status!: "Registrado" | "Asistido" | "Cancelado";
+  public attendance_status!: "Registrado" | "Asistio" | "Cancelo" | "No Asistio";
+  public is_certificated!: boolean;
   public readonly created_at!: string;
   public readonly updated_at!: string;
 }
@@ -44,6 +46,11 @@ EventRegistration.init(
       allowNull: false,
       defaultValue: "Registrado",
     },
+    is_certificated: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    }
   },
   {
     sequelize,

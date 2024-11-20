@@ -1,12 +1,13 @@
-import ObjectID from "bson-objectid";
 import { sequelize } from "../db/db";
 import { DataTypes, Model } from "sequelize";
 
 interface CertificateAttributes {
   certificate_id: Buffer;
-  file: string;
-  relative_file_url: string;
+  user_id: Buffer;
   event_id: Buffer;
+  organization_id: Buffer;
+  issue_date: Date;
+  is_valid: boolean;
 }
 
 class Certificate
@@ -14,9 +15,11 @@ class Certificate
   implements CertificateAttributes
 {
   public certificate_id!: Buffer;
-  public file!: string;
-  public relative_file_url!: string;
+  public user_id!: Buffer;
+  public organization_id!: Buffer;
   public event_id!: Buffer;
+  public issue_date!: Date;
+  public is_valid!: boolean;
   public readonly created_at!: string;
   public readonly updated_at!: string;
 }
@@ -26,18 +29,22 @@ Certificate.init(
     certificate_id: {
       type: DataTypes.BLOB,
       primaryKey: true,
-      defaultValue: () => Buffer.from(ObjectID().toHexString(), "hex"),
     },
-    file: {
-      type: DataTypes.TEXT,
-      validate: {
-        isUrl: true,
+    user_id: {
+      type: DataTypes.BLOB,
+      allowNull: false,
+      references: {
+        model: "cbt_users",
+        key: "user_id",
       },
-      allowNull: false,
     },
-    relative_file_url: {
-      type: DataTypes.TEXT,
+    organization_id: {
+      type: DataTypes.BLOB,
       allowNull: false,
+      references: {
+        model: "cbt_organizations",
+        key: "organization_id",
+      },
     },
     event_id: {
       type: DataTypes.BLOB,
@@ -46,6 +53,14 @@ Certificate.init(
         model: "cbt_events",
         key: "event_id",
       },
+    },
+    issue_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    is_valid: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
     },
   },
   {

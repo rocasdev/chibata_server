@@ -1,9 +1,15 @@
 import { Sequelize } from "sequelize";
 import {
-  DB_URI
+  DB_HOST,
+  DB_PASS,
+  DB_PORT,
+  DB_SCHEMA,
+  DB_USER,
 } from "../config/constants";
 
-export const sequelize = new Sequelize(DB_URI, {
+export const sequelize = new Sequelize(DB_SCHEMA, DB_USER, DB_PASS, {
+  host: DB_HOST,
+  port: DB_PORT,
   dialect: "mysql",
   define: {
     createdAt: "created_at",

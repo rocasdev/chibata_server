@@ -365,6 +365,23 @@ class EventController {
     }
   }
 
+  async patchEventStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId = req.params.id;
+      const status = req.body.status;
+      const updatedEvent = await EventService.patchEventStatus(eventId, status);
+      res.status(200).json({
+        message: "Estado del evento actualizado correctamente",
+        event: updatedEvent,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot patch event status:", err);
+      res
+        .status(500)
+        .json({ message: "Error interno al cambiar el progreso del evento" });
+    }
+  }
+
   async getEventsByDate(req: Request, res: Response): Promise<void> {
     try {
       const dateStr = req.query.date as string;
@@ -465,7 +482,9 @@ class EventController {
       }
 
       const registrations = await EventService.getRegistrationsByEventId(
-        event_id, page, limit
+        event_id,
+        page,
+        limit
       );
 
       console.log(registrations);
@@ -473,6 +492,7 @@ class EventController {
       res.status(200).json({
         message: "Registros obtenidos correctamente",
         registrations: registrations.registrations,
+        event: registrations.event,
         totalPages: registrations.totalPages,
         currentPage: registrations.currentPage,
         totalItems: registrations.totalItems,
@@ -481,6 +501,55 @@ class EventController {
       console.error("Controller | Cannot find registrations:", err);
       res.status(500).json({
         message: `Error interno al encontrar los voluntarios: ${err.message}`,
+      });
+    }
+  }
+
+  async patchVolunteerAttendanceStatus(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const event_id = req.params.id;
+      const user_id = req.body.userId;
+      const status = req.body.status;
+
+      await EventService.updateVolunteerAttendanceStatus(
+        event_id,
+        user_id,
+        status
+      );
+
+      res.status(200).json({
+        message: "Actualización de asistencia exitosa",
+        current_status: status,
+      });
+    } catch (err: any) {
+      console.error(
+        "Controller | Cannot patch volunteer attendance status:",
+        err
+      );
+      res.status(500).json({
+        message:
+          "Error interno al actualizar el estado de asistencia del voluntario",
+      });
+    }
+  }
+
+  async giveUserCertificate(req: Request, res: Response): Promise<void> {
+    try {
+      const event_id = req.params.id;
+      const user_id = req.body.userId;
+
+      await EventService.giveCertificate(event_id, user_id);
+
+      res.status(200).json({
+        message: "Certificado generado exitosamente",
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot give volunteer certificate:", err);
+      res.status(500).json({
+        message: "Error interno al expedir el certificado",
       });
     }
   }

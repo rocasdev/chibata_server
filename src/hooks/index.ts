@@ -6,7 +6,6 @@ import { Event } from "../models/event.model";
 import { EventRegistration } from "../models/event_registration.model";
 import { Comment } from "../models/comment.model";
 import { Notification } from "../models/notification.model";
-import { UserCertificate } from "../models/user_certificate.model";
 import ObjectID from "bson-objectid";
 import { Transaction } from "sequelize";
 
@@ -234,17 +233,3 @@ Comment.addHook("afterCreate", async (comment: Comment, options) => {
     );
   }
 });
-
-// 10. Certificados (cbt_certificates y cbt_user_certificates)
-UserCertificate.addHook(
-  "afterCreate",
-  async (user_certificate: UserCertificate, options) => {
-    const t = options.transaction;
-    await createNotification(
-      user_certificate.user_id,
-      "Nuevo certificado disponible",
-      `Se ha generado un nuevo certificado por tu participación en un evento. ¡Ya puedes descargarlo!`,
-      t
-    );
-  }
-);

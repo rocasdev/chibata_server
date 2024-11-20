@@ -4,6 +4,7 @@ import {
   UserCreationAttributes,
 } from "../models/user.model";
 import { Role } from "../models/role.model";
+import { Certificate } from "../models/certificate.model";
 import "../models/relations";
 import { sequelize } from "../db/db";
 import bcrypt from "bcrypt";
@@ -13,6 +14,7 @@ import ObjectID from "bson-objectid";
 import { Organization } from "../models/organization.model";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/constants";
+import { Event } from "../models/event.model";
 
 class UserService {
   constructor() {
@@ -240,6 +242,69 @@ class UserService {
       throw new Error(
         `User Service | Error authenticating user: ${err.message}`
       );
+    }
+  }
+
+  static async getUserCertificates(
+    userId: string,
+    page: number = 1,
+    limit: number = 10
+  ) {
+    try {
+      const offset = (page - 1) * limit;
+      const oid = Buffer.from(userId, "hex");
+      const { count, rows: certificates } = await Certificate.findAndCountAll({
+        where: { user_id: oid },
+        attributes: {
+          include: [
+            [
+              Sequelize.fn("HEX", Sequelize.col("certificate_id")),
+              "certificate_id",
+            ],
+            [
+              Sequelize.fn("HEX", Sequelize.col("Certificate.user_id")),
+              "user_id",
+            ],
+            [
+              Sequelize.fn("HEX", Sequelize.col("Certificate.organization_id")),
+              "organization_id",
+            ],
+            [
+              Sequelize.fn("HEX", Sequelize.col("Certificate.event_id")),
+              "event_id",
+            ],
+            "issue_date",
+          ],
+        },
+        include: [
+          {
+            model: User,
+            attributes: ["firstname", "surname"],
+          },
+          {
+            model: Event,
+            attributes: ["title"],
+          },
+          {
+            model: Organization,
+            attributes: ["name", "logo"],
+          },
+        ],
+        limit,
+        offset,
+      });
+
+      const totalPages = Math.ceil(count / limit);
+
+      return {
+        certificates,
+        currentPage: page,
+        totalPages,
+        totalItems: count,
+      };
+    } catch (err: any) {
+      console.error("Cannot fetch user certificates:", err);
+      throw new Error(`Error fetching user certificates: ${err.message}`);
     }
   }
 }

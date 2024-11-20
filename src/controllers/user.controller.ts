@@ -195,14 +195,50 @@ class UserController {
   async toggleUserState(req: Request, res: Response): Promise<void> {
     const userId = req.params.id;
     try {
-      const user = await UserService.toggleUserState(userId)
-      res.status(200).json({ message: "Usuario estado actualizado correctamente", user: user });
+      const user = await UserService.toggleUserState(userId);
+      res.status(200).json({
+        message: "Usuario estado actualizado correctamente",
+        user: user,
+      });
     } catch (err: any) {
       console.error("Controller | Cannot toggle user state");
-      res.status(500).json({ message: `Error interno al cambiar el estado del usuario: ${err.message}` })
+      res.status(500).json({
+        message: `Error interno al cambiar el estado del usuario: ${err.message}`,
+      });
       throw new Error(
         `Controller throws error | cannot toggle user state: ${err.message}`
-      )
+      );
+    }
+  }
+
+  async getUserCertificates(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.session.user_id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      if (!id) {
+        res
+          .status(401)
+          .json({ message: "No se encontró el ID del usuario logueado" });
+        return;
+      }
+      const certificates = await UserService.getUserCertificates(id, page, limit);
+
+      res.status(200).json({
+        message: "Certificados recuperados exitosamente",
+        certificates: certificates.certificates,
+        totalPages: certificates.totalPages,
+        currentPage: certificates.currentPage,
+        totalItems: certificates.totalItems,
+      });
+    } catch (err: any) {
+      console.error("Controller | Cannot get user certificates");
+      res.status(500).json({
+        message: `Error interno al obtener los certificados del usuario: ${err.message}`,
+      });
+      throw new Error(
+        `Controller throws error | cannot find user certificates: ${err.message}`
+      );
     }
   }
 }

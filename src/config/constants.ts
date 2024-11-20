@@ -8,7 +8,7 @@ const NODE_ENV = process.env.NODE;
 
 // DATABASE CONSTANTS
 const DB_USER: string = process.env.DB_USER || "";
-const DB_PASS: string = process.env.DB_PASS || "";
+const DB_PASS: string = process.env.DB_PASSWORD || "";
 const DB_SCHEMA: string = process.env.DB_SCHEMA || "";
 const DB_HOST: string = process.env.DB_HOST || "";
 const DB_PORT: number = parseInt(process.env.DB_PORT || "3306", 10);

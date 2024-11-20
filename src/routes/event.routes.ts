@@ -32,6 +32,11 @@ class EventRoutes {
       this.authMiddleware.isAuthenticated,
       this.eventController.toggleEventState
     );
+    this.router.patch(
+      "/change-status/:id",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.patchEventStatus
+    );
     this.router.get(
       "/category/:id",
       this.authMiddleware.isAuthenticated,
@@ -57,6 +62,16 @@ class EventRoutes {
       this.authMiddleware.isAuthenticated,
       this.eventController.getRegistrationsByEvent
     );
+    this.router.patch(
+      "/enrolls/:id/update-attendance",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.patchVolunteerAttendanceStatus
+    );
+    this.router.post(
+      "/enrolls/:id/give-certificate",
+      this.authMiddleware.isAuthenticated,
+      this.eventController.giveUserCertificate
+    )
   }
 
   public getRouter(): Router {

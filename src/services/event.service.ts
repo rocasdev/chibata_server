@@ -11,6 +11,7 @@ import { User } from "../models/user.model";
 import { Category } from "../models/category.model";
 import { OrganizationMember } from "../models/organization_member.model";
 import { EventRegistration } from "../models/event_registration.model";
+import { Certificate } from "../models/certificate.model";
 
 class EventService {
   constructor() {
@@ -570,45 +571,78 @@ class EventService {
     try {
       const offset = (page - 1) * limit;
       const oid = Buffer.from(eventId, "hex");
-      const { count, rows: registrations } = await EventRegistration.findAndCountAll({
-        where: { event_id: oid },
-        attributes: {
-          include: [
-            [
-              Sequelize.fn(
-                "HEX",
-                Sequelize.col("EventRegistration.volunteer_id")
-              ),
-              "volunteer_id",
-            ],
-            [
-              Sequelize.fn("HEX", Sequelize.col("EventRegistration.event_id")),
-              "event_id",
-            ],
-            "attendance_status"
-          ],
-        },
-        include: [
-          {
-            model: User,
-            attributes: [
-              [Sequelize.fn("HEX", Sequelize.col("User.user_id")), "user_id"],
-              "firstname",
-              "surname",
-              "avatar",
+      const { count, rows: registrations } =
+        await EventRegistration.findAndCountAll({
+          where: { event_id: oid },
+          attributes: {
+            include: [
+              [
+                Sequelize.fn(
+                  "HEX",
+                  Sequelize.col("EventRegistration.volunteer_id")
+                ),
+                "volunteer_id",
+              ],
+              [
+                Sequelize.fn(
+                  "HEX",
+                  Sequelize.col("EventRegistration.event_id")
+                ),
+                "event_id",
+              ],
+              "attendance_status",
+              "is_certificated",
             ],
           },
+          include: [
+            {
+              model: User,
+              attributes: [
+                [Sequelize.fn("HEX", Sequelize.col("User.user_id")), "user_id"],
+                "firstname",
+                "surname",
+                "avatar",
+              ],
+            },
+            {
+              model: Event,
+              attributes: [
+                [
+                  Sequelize.fn("HEX", Sequelize.col("Event.event_id")),
+                  "event_id",
+                ],
+                "title",
+                "max_volunteers",
+                "current_volunteers",
+                "status",
+                "is_active",
+              ],
+            },
+          ],
+          limit,
+          offset,
+          order: [["created_at", "DESC"]],
+        });
+
+      const event = await Event.findOne({
+        where: { event_id: oid },
+        attributes: [
+          [Sequelize.fn("HEX", Sequelize.col("Event.event_id")), "event_id"],
+          "title",
+          "max_volunteers",
+          "current_volunteers",
+          "status",
+          "is_active",
+          "description",
+          "date_time",
         ],
-        limit,
-        offset,
-        order: [["created_at", "DESC"]],
       });
 
-      console.log(registrations);
       const totalPages = Math.ceil(count / limit);
 
       return {
         registrations,
+        event,
         totalPages,
         currentPage: page,
         totalItems: count,
@@ -656,6 +690,7 @@ class EventService {
           attendance_status: "Registrado",
           event_id: oid,
           volunteer_id: userOid,
+          is_certificated: false,
         },
         { transaction: t }
       );
@@ -798,6 +833,98 @@ class EventService {
       throw new Error(
         `Error validating user enrollment in event: ${err.message}`
       );
+    }
+  }
+
+  static async updateVolunteerAttendanceStatus(
+    event_id: string,
+    user_id: string,
+    status: "Asistio" | "Cancelo" | "No Asistio" | "Registrado"
+  ) {
+    try {
+      const event_oid = Buffer.from(event_id, "hex");
+      const user_oid = Buffer.from(user_id, "hex");
+      const registration = await EventRegistration.findOne({
+        where: { event_id: event_oid, volunteer_id: user_oid },
+      });
+      if (registration) {
+        registration.attendance_status = status;
+        await registration.save();
+        return true;
+      } else {
+        throw new Error(
+          `No se encontró registro de asistencia para el voluntario.`
+        );
+      }
+    } catch (err: any) {
+      console.error("Cannot update volunteer attendance status:", err);
+      throw new Error(
+        `Error updating volunteer attendance status: ${err.message}`
+      );
+    }
+  }
+
+  static async giveCertificate(event_id: string, user_id: string) {
+    const t = await sequelize.transaction();
+    try {
+      const certificate_oid = Buffer.from(ObjectID().toHexString(), "hex");
+      const user_oid = Buffer.from(user_id, "hex");
+      const oid = Buffer.from(event_id, "hex");
+      const event = await Event.findByPk(oid);
+      if (!event) {
+        await t.rollback();
+        throw new Error(`No se encontró el evento con id ${event_id}`);
+      }
+      const certificate = Certificate.build({
+        certificate_id: certificate_oid,
+        event_id: event.event_id,
+        user_id: user_oid,
+        organization_id: event.organization_id,
+        issue_date: new Date(),
+        is_valid: true,
+      });
+      const newCertificate = await certificate.save({ transaction: t });
+      const eventRegistration = await EventRegistration.findOne({
+        where: { event_id: event.event_id, volunteer_id: user_oid },
+        transaction: t,
+      });
+      if (!eventRegistration) {
+        await t.rollback();
+        throw new Error(
+          `No se encontró el registro de asistencia para el voluntario.`
+        );
+      }
+      eventRegistration.is_certificated = true;
+      await eventRegistration.save({ transaction: t });
+      await t.commit();
+      return newCertificate;
+    } catch (err: any) {
+      console.error("Cannot give certificate to volunteer:", err);
+      await t.rollback();
+      throw new Error(`Error giving certificate to volunteer: ${err.message}`);
+    }
+  }
+
+  static async patchEventStatus(
+    event_id: string,
+    status: "Programado" | "En progreso" | "Cancelado" | "Finalizado"
+  ) {
+    const t = await sequelize.transaction();
+    try {
+      const event_oid = Buffer.from(event_id, "hex");
+      const event = await Event.findByPk(event_oid);
+      if (!event) {
+        await t.rollback();
+        throw new Error(`No se encontró el evento con id ${event_id}`);
+      }
+      event.status = status;
+      await event.save({ transaction: t });
+      await t.commit();
+      return true;
+    } catch (err: any) {
+      console.error("Cannot update event status:", err);
+      await t.rollback();
+      throw new Error(`Error updating event status: ${err.message}`);
     }
   }
 }

@@ -16,6 +16,11 @@ class UserRoutes {
 
   private initializeRoutes(): void {
     this.router.get(
+      "/certificates/own",
+      this.authMiddleware.isAuthenticated,
+      this.userController.getUserCertificates
+    );
+    this.router.get(
       "/me",
       this.authMiddleware.isAuthenticated,
       this.userController.getLoggedUser
@@ -37,9 +42,11 @@ class UserRoutes {
       this.authMiddleware.isAuthenticated,
       this.authMiddleware.isAdmin,
       this.userController.getUserOrganization
-    )
+    );
     this.router.post(
       "/",
+      this.authMiddleware.isAuthenticated,
+      this.authMiddleware.isAdmin,
       this.userController.postUser
     );
     this.router.put(
@@ -52,7 +59,7 @@ class UserRoutes {
       this.authMiddleware.isAuthenticated,
       this.authMiddleware.isAdmin,
       this.userController.toggleUserState
-    )
+    );
   }
 
   public getRouter(): Router {
